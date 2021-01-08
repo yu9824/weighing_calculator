@@ -352,11 +352,7 @@ class Menu:
     def read(self):
         self.event, self.values = self.window.read()
     
-
-
-        
             
-                
 if __name__ == '__main__':
     from pdb import set_trace
     app = gui()
