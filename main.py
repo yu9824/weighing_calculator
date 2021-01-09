@@ -248,7 +248,12 @@ class gui:
                     if calculation_menu.values['product'] == '':
                         sg.popup_error('Nothing has been entered.', **self.option_text_default, modal = False, keep_on_top=True)
                         continue
-                    wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
+                    try:    # match_all=Trueでうまくいかなかったとき
+                        wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
+                    except ValueError:
+                        sg.popup_ok('The results of the calculations may be different because they did not match exactly.', **self.option_text_default, modal = False, keep_on_top=True)
+                        wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = False, progress_bar = False)
+
                 self._table(wc = wc)
         
         calculation_menu.window.close()
