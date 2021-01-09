@@ -245,7 +245,10 @@ class gui:
                         continue
                     wc.calc(ratio = list(dict_ratio.values()), mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
                 elif 'product' in calculation_menu.event:
-                    wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess)
+                    if calculation_menu.values['product'] == '':
+                        sg.popup_error('Nothing has been entered.', **self.option_text_default, modal = False, keep_on_top=True)
+                        continue
+                    wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
                 self._table(wc = wc)
         
         calculation_menu.window.close()

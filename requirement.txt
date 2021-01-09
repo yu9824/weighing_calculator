@@ -1,9 +1,0 @@
-pandas
-numpy
-xlwt
-element_recognition
-pysimplegui
-tk
-pymatgen
-openpyxl
-py2app
