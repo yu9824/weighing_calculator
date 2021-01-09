@@ -1,10 +1,8 @@
-python>=3.8.0
 pandas
 numpy
 xlwt
 element_recognition>=0.0.6
 pysimplegui
-tk
 pymatgen
 openpyxl
 py2app
