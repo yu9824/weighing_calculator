@@ -39,6 +39,7 @@ class WeighingCalculator:
         # 比率が計算できなかった組成をためておくリスト
         # comp_null = []
         
+        products = self.df_ratio.index.to_numpy().tolist()  # self.df_ratioではproductsの空白を削除した組成名を得られるため，上書き．
         self.dict_products = {product: Composition(product) for product in products}
         self.products = products
 
@@ -93,7 +94,7 @@ class gui:
 
         # layoutの作成
         menu_n_materials.layout = [
-            [sg.Text('Start menu', font = (self.font_default, 25))],
+            [sg.Text('Start Menu', font = (self.font_default, 25))],
             [sg.Text('')],
             [sg.Text('原料の数'), sg.InputText(key = 'n_materials', size = (3, 1), justification='right')],
             [sg.Text('')],
@@ -118,23 +119,25 @@ class gui:
                     # windowを閉じてから次のwindowを開く
                     menu_n_materials.window.close()
                     self._get_materials_compositions(n_materials)
+                    break
                 
 
     def _get_materials_compositions(self, n_materials):
         # オブジェクトの生成
         get_materials_compositions = Menu(self)
 
-        # 原料比を入力するやつ，スクロールできるように．
+        # 原料を入力するやつ
         entering_compositions_layout = [[sg.Text('原料{}'.format(n+1), size = (6, 1)), sg.InputText(size = (10, 1), key = 'material{}'.format(n+1))] for n in range(n_materials)]
 
         # このページのlayoutの作成
-        if n_materials > 5:
+        if n_materials > 5: # 数が多いときはスクロールできるように．
             get_materials_compositions.layout = [
                 [sg.Column(entering_compositions_layout, scrollable = True, vertical_scroll_only=True, size = (400, 225), justification='center')],
             ]
         else:
             get_materials_compositions.layout = entering_compositions_layout
-        # buttonは共通なので足す．
+        # buttonとタイトルは共通なので足す．
+        get_materials_compositions.layout.insert(0, [sg.Text('出発物質入力画面')])
         get_materials_compositions.layout.extend([[sg.Text('')], [sg.Submit('Confirm')]])
 
         # windowの生成
@@ -214,7 +217,7 @@ class gui:
 
         # このページ全体のlayout
         calculation_menu.layout = [
-            [sg.Text(self.APP_NAME)],
+            [sg.Text('秤量計算画面')],
             [frame_mg],
             [sg.Text('')],
             [frame_ratio, frame_product],
@@ -251,8 +254,13 @@ class gui:
                     try:    # match_all=Trueでうまくいかなかったとき
                         wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
                     except ValueError:
-                        sg.popup_ok('The results of the calculations may be different because they did not match exactly.', **self.option_text_default, modal = False, keep_on_top=True)
-                        wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = False, progress_bar = False)
+                        try:
+                            wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = False, progress_bar = False)
+                        except ValueError:  # match_all=Falseでもうまくいかなかったとき
+                            sg.PopupError('The composition you have entered is invalid.', **self.option_text_default, modal = False, keep_on_top=True)
+                            continue
+                        else:
+                            sg.popup_ok('The results of the calculations may be different because they did not match exactly.', **self.option_text_default, modal = False, keep_on_top=True)
 
                 self._table(wc = wc)
         
@@ -265,16 +273,16 @@ class gui:
         # 出力用の表を作成
         df_output, df_output_show = self._make_output(wc)
         df_output_show.drop(index = ['measured value (mg)'], inplace = True)
+        df_output.index.name = ''
+        df_output_show.index.name = ''
         df_output_show.reset_index(inplace=True)
-        
-
 
         # オブジェクトの生成
         table_menu = Menu(self)
 
         # layoutの作成
         table_menu.layout = [
-            [sg.Table(df_output_show.to_numpy().tolist(), headings = df_output_show.columns.to_numpy().tolist(), col_widths = [16] + [10] * (df_output_show.shape[1]-2) + [16], auto_size_columns = False, hide_vertical_scroll=True)],
+            [sg.Table(df_output_show.to_numpy().tolist(), headings = df_output_show.columns.to_numpy().tolist(), col_widths = [16] + [10] * (df_output_show.shape[1]-2) + [16], auto_size_columns = False, hide_vertical_scroll=False)],
             [sg.Cancel(), sg.InputText(key='SaveAs', do_not_clear=False, enable_events=True, visible=False), sg.FileSaveAs('SaveAs', default_extension = '.xlsx', file_types = (('Excel file', '*.xlsx'),))],   # do_not_clearをFalseにしないとCancelしても上書きされてしまう．あと，sg.FilseSaveAsのenable_event = Trueにしてもenentが発生しないのでsg.InputTextで受け取るときにeventを発生させている．
         ]
 

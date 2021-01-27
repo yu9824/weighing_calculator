@@ -11,7 +11,7 @@ import os
 import sys
 sys.setrecursionlimit(10 ** 9)
 
-VERSION = '0.0.1'
+VERSION = '0.1.0'
 VERSION_PYTHON = '{0}.{1}'.format(sys.version_info.major, sys.version_info.minor)
 APP_NAME = 'weighing_calculator'
 DESCRIPTION = "Calculate weghing."
