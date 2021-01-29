@@ -1,7 +1,7 @@
 pandas
 numpy
 xlwt
-element_recognition>=0.0.6
+element_recognition>=0.1.0
 pysimplegui
 pymatgen
 openpyxl
