@@ -242,9 +242,17 @@ class gui:
                 mg = float(calculation_menu.values['mg'])
                 if 'ratio' in calculation_menu.event:
                     try:
-                        dict_ratio = {k: float(v) for k, v in calculation_menu.values.items() if k in dict_materials.values()}
-                    except ValueError:
-                        sg.popup_error('You have not entered any. Or the value you entered is not an integer or float.', **self.option_text_default, modal = False, keep_on_top=True)
+                        dict_ratio = {}
+                        for k, v in calculation_menu.values.items():
+                            if k in dict_materials.values():
+                                if v.count('/') > 1:
+                                    raise ValueError
+                                elif '/' in v:
+                                    dict_ratio[k] = float(v.split('/')[0]) / float(v.split('/')[1])
+                                else:
+                                    dict_ratio[k] = float(v)
+                    except ValueError:  # try内で指定したValueError以外も含めて．
+                        sg.popup_error('You have not entered any. Or the value you entered is not good.\nCorrect: 1/3, 1, 1.0, 3.141 etc.', **self.option_text_default, modal = False, keep_on_top=True)
                         continue
                     wc.calc(ratio = list(dict_ratio.values()), mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
                 elif 'product' in calculation_menu.event:
