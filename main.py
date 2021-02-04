@@ -1,6 +1,5 @@
 from pymatgen.core.composition import Composition
 from element_recognition import get_ratio, make_compositions
-from tqdm import tqdm
 from math import isclose
 import pandas as pd
 import numpy as np
@@ -53,7 +52,7 @@ class WeighingCalculator:
         self.moles = []
 
         # dataframeを各行ごとに取り出す．
-        for product, ratio in tqdm(self.df_ratio.iterrows()) if progress_bar else self.df_ratio.iterrows():
+        for product, ratio in self.df_ratio.iterrows():
             mole = mg / self.dict_products[product].weight
             self.moles.append(mole)
             if ratio.isnull().all():    # anyのほうが良い気もする．
@@ -378,6 +377,6 @@ class Menu:
     
             
 if __name__ == '__main__':
-    from pdb import set_trace
+    # from pdb import set_trace
     app = gui()
     app.run()
