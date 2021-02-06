@@ -9,17 +9,36 @@ import os
 class WeighingCalculator:
     def __init__(self, materials):
         '''
-        materials: list
+        Parameters
+        ----------
+        materials : list
+            [description]
         '''
         self.materials = materials
         self.dict_materials = {material: Composition(material) for material in materials}
 
     def calc(self, products = [], ratio = [], mg = 2000, excess = {}, match_all = True, progress_bar = True):
         '''
-        products: list
-        ratio: list/np.ndarray/pd.DataFrame (shape = (n, len(materials)))
-        mg: int/float default: 2000．完成量 [mg]
-        excess: dict default: {} 過剰量を{組成: 割合}のリストで与える．（e.g. {'Li2O': 0.05} → Li2Oを5 mol%過剰に入れる．)
+        calculate weighing
+
+        Parameters
+        ----------
+        products : list, optional
+            [description], by default []
+        ratio : list, optional
+            [description], by default []
+        mg : int, optional
+            完成量, by default 2000
+        excess : dict, optional
+            過剰量 e.g. {'Li2O': 0.05}, by default {}
+        match_all : bool, optional
+            完全一致していないとダメかどうか, by default True
+        progress_bar : bool, optional
+            進捗バーを表示するかどうか, by default True
+
+        Raises
+        ------
+        ValueError
         '''
         if len(products) * len(ratio):  # 両方に入力があったら．
             raise ValueError('You can only enter either "products" or "ratio".')
