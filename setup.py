@@ -15,7 +15,7 @@ sys.setrecursionlimit(10 ** 9)
 
 
 # ------------------------ ここを変更 --------------------------------
-VERSION = '0.3.0'
+VERSION = '0.4.0'
 VERSION_PYTHON = '{0}.{1}'.format(sys.version_info.major, sys.version_info.minor)
 APP_NAME = 'weighing_calculator'
 DESCRIPTION = 'Calculate weghing.'
@@ -25,7 +25,7 @@ EMAIL = '{0}@{1}'.format('yu.9824', 'gmail.com')
 
 # py2app用の変数
 SRC = ['main.py']
-DATA_FILES = []
+DATA_FILES = ['settings.json']
 PKGS = ['pandas', 'numpy', 'xlwt', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
 ICON = os.path.join('icon', '{}.icns'.format(APP_NAME))
 # --------------------------------------------------------------------

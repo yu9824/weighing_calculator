@@ -5,6 +5,23 @@ import pandas as pd
 import numpy as np
 import PySimpleGUI as sg
 import os
+import json
+
+'''
+Mac OSX10.15においてmenubarがつかえないbugが起きるが，これはstandalone化すれば解決する．
+'''
+
+# フォント
+font_default = 'Hiragino Sans CNS'
+font_size_default = 20
+option_text_default = {
+    'font': (font_default, font_size_default),
+}
+
+APP_NAME = 'Weighing Calculator'
+
+# 設定
+path_settings = os.path.join(os.path.dirname(__file__), 'settings.json')
 
 class WeighingCalculator:
     def __init__(self, materials):
@@ -95,24 +112,29 @@ class gui:
         '''
         theme: 'SystemDefault' or 'Black'
         '''
-        sg.theme(theme)
+        # load setting
+        try:
+            self.settings = json.load(open(path_settings, mode = 'r', encoding = 'utf_8'))
+        except Exception as e:
+            pass
+        else:
+            if self.settings['theme'] == 'light':
+                theme = 'SystemDefault'
+            elif self.settings['theme'] == 'dark':
+                theme = 'Black'
+        finally:
+            sg.theme(theme)
 
-        self.font_default = 'Hiragino Sans CNS'
-        self.font_size_default = 20
-        self.option_text_default = {
-            'font': (self.font_default, self.font_size_default),
-        }
-
-        self.APP_NAME = '秤量計算ソフト'
+        lang = self.settings['lang']
          
 
     def run(self):
         # オブジェクトの生成
-        menu_n_materials = Menu(self)
+        menu_n_materials = Menu()
 
         # layoutの作成
         menu_n_materials.layout = [
-            [sg.Text('Start Menu', font = (self.font_default, 25))],
+            [sg.Text('スタート画面', font = (font_default, 25))],
             [sg.Text('')],
             [sg.Text('原料の数'), sg.InputText(key = 'n_materials', size = (3, 1), justification='right')],
             [sg.Text('')],
@@ -132,7 +154,7 @@ class gui:
                 try:
                     n_materials = int(n_materials)
                 except ValueError:
-                    popup_error = sg.popup_error('You have to enter an integer.', **self.option_text_default, modal = False, keep_on_top=True)
+                    popup_error = sg.popup_error('You have to enter an integer.', **option_text_default, modal = False, keep_on_top=True)
                 else:
                     # windowを閉じてから次のwindowを開く
                     menu_n_materials.window.close()
@@ -142,7 +164,7 @@ class gui:
 
     def _get_materials_compositions(self, n_materials):
         # オブジェクトの生成
-        get_materials_compositions = Menu(self)
+        get_materials_compositions = Menu()
 
         # 原料を入力するやつ
         entering_compositions_layout = [[sg.Text('原料{}'.format(n+1), size = (6, 1)), sg.InputText(size = (10, 1), key = 'material{}'.format(n+1))] for n in range(n_materials)]
@@ -168,9 +190,9 @@ class gui:
                 get_materials_compositions.window.close()
                 break
             elif get_materials_compositions.event == 'Confirm':
-                dict_materials = {k:v for k, v in get_materials_compositions.values.items() if 'material' in k}
+                dict_materials = {k:v for k, v in get_materials_compositions.values.items() if 'material' in str(k)}
                 if '' in dict_materials.values():
-                    sg.popup_error('Some of them are not filled in at all.', **self.option_text_default, modal = False, keep_on_top=True)
+                    sg.popup_error('Some of them are not filled in at all.', **option_text_default, modal = False, keep_on_top=True)
                     continue
                 # windowを閉じてから次のwindowを開く
                 get_materials_compositions.window.close()
@@ -179,7 +201,7 @@ class gui:
 
 
     def _calculation_menu(self, dict_materials):
-        calculation_menu = Menu(self)
+        calculation_menu = Menu()
 
         n_materials = len(dict_materials)
 
@@ -270,12 +292,12 @@ class gui:
                                 else:
                                     dict_ratio[k] = float(v)
                     except ValueError:  # try内で指定したValueError以外も含めて．
-                        sg.popup_error('You have not entered any. Or the value you entered is not good.\nCorrect: 1/3, 1, 1.0, 3.141 etc.', **self.option_text_default, modal = False, keep_on_top=True)
+                        sg.popup_error('You have not entered any. Or the value you entered is not good.\nCorrect: 1/3, 1, 1.0, 3.141 etc.', **option_text_default, modal = False, keep_on_top=True)
                         continue
                     wc.calc(ratio = list(dict_ratio.values()), mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
                 elif 'product' in calculation_menu.event:
                     if calculation_menu.values['product'] == '':
-                        sg.popup_error('Nothing has been entered.', **self.option_text_default, modal = False, keep_on_top=True)
+                        sg.popup_error('Nothing has been entered.', **option_text_default, modal = False, keep_on_top=True)
                         continue
                     try:    # match_all=Trueでうまくいかなかったとき
                         wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
@@ -283,10 +305,10 @@ class gui:
                         try:
                             wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = False, progress_bar = False)
                         except ValueError:  # match_all=Falseでもうまくいかなかったとき
-                            sg.PopupError('The composition you have entered is invalid.', **self.option_text_default, modal = False, keep_on_top=True)
+                            sg.PopupError('The composition you have entered is invalid.', **option_text_default, modal = False, keep_on_top=True)
                             continue
                         else:
-                            sg.popup_ok('The results of the calculations may be different because they did not match exactly.', **self.option_text_default, modal = False, keep_on_top=True)
+                            sg.popup_ok('The results of the calculations may be different because they did not match exactly.', **option_text_default, modal = False, keep_on_top=True)
 
                 self._table(wc = wc)
         
@@ -304,7 +326,7 @@ class gui:
         df_output_show.reset_index(inplace=True)
 
         # オブジェクトの生成
-        table_menu = Menu(self)
+        table_menu = Menu()
 
         # layoutの作成
         table_menu.layout = [
@@ -323,7 +345,7 @@ class gui:
                 if table_menu.values['SaveAs'] == '':
                     continue
                 df_output.reset_index().to_excel(table_menu.values['SaveAs'], index = False)
-                sg.PopupOK('Saved successfully.', modal = True, **self.option_text_default)
+                sg.PopupOK('Saved successfully.', modal = True, **option_text_default)
             break
             
                 
@@ -377,22 +399,75 @@ class gui:
 
 
 class Menu:
-    def __init__(self, gui):
-        self.gui = gui
-        self.layout = [[]]
+    def __init__(self, layout = ((sg.Text('You have to add something to show.')),)):
+        self.layout = layout
+        self.menu_def = [
+            ['Menu', ['Setting']],
+        ]
 
     def make_window(self, **options):
         default_options = {
             'size' : (800, 450),
-            "font" : (self.gui.font_default, self.gui.font_size_default),
             'element_justification' : 'center',
             'resizable': True
         }
+        default_options.update(option_text_default)
         default_options.update(**options)
-        self.window = sg.Window(self.gui.APP_NAME, layout = self.layout, **default_options)
+        # Add MenuBar
+        self.layout.insert(0, [sg.Menu(self.menu_def, font = sg.DEFAULT_FONT)])
+        self.window = sg.Window(APP_NAME, layout = self.layout, **default_options, finalize = True)
 
     def read(self):
         self.event, self.values = self.window.read()
+        if self.event == 'Setting':
+            if _change_setting():   # 設定に反映させるために閉じる場合
+                self.window.close()
+    
+def _change_setting():
+    settings = json.load(open(path_settings, mode = 'r', encoding = 'utf_8'))
+
+    corr_lang = {
+        '日本語': 'ja',
+        'English': 'en',
+        'ja': '日本語',
+        'en': 'English'
+    }
+    corr_theme = {
+        'Light': 'light',
+        'Dark': 'dark',
+        'light': 'Light',
+        'dark': 'Dark',
+    }
+
+    setting_menu = Menu(layout = [
+        [sg.Text('Setting')],
+        [sg.Text('')],
+        # [sg.Text('Langage'), sg.Combo(['日本語', 'English'], default_value = corr_lang[settings['lang']], key = 'lang')],
+        [sg.Text('Theme'), sg.Combo(['Light', 'Dark'], default_value = corr_theme[settings['theme']], key = 'theme')],
+        [sg.Text('')],
+        [sg.Cancel(), sg.OK()]
+    ])
+
+    setting_menu.make_window(size = (None, None))
+    while True:
+        setting_menu.read()
+        do_close = False    # 再起動するかどうか
+        if setting_menu.event == 'OK':
+            settings = {
+                # 'lang': corr_lang[setting_menu.values['lang']],
+                'lang': 'ja',
+                'theme': corr_theme[setting_menu.values['theme']]
+                }
+            event = sg.PopupYesNo('You will need to reboot to apply the configuration changes.\nCan I close it to apply the settings?', modal = False, keep_on_top = True, **option_text_default)
+            if event == 'Yes':
+                json.dump(settings, open(path_settings, mode = 'w', encoding='utf_8'), indent = 4)
+                do_close = True
+                break
+        else:
+            break
+    setting_menu.window.close()
+    return do_close
+
     
             
 if __name__ == '__main__':
