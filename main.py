@@ -1,6 +1,5 @@
 from pymatgen.core.composition import Composition
 from element_recognition import get_ratio, make_compositions
-from tqdm import tqdm
 from math import isclose
 import pandas as pd
 import numpy as np
@@ -10,17 +9,36 @@ import os
 class WeighingCalculator:
     def __init__(self, materials):
         '''
-        materials: list
+        Parameters
+        ----------
+        materials : list
+            [description]
         '''
         self.materials = materials
         self.dict_materials = {material: Composition(material) for material in materials}
 
     def calc(self, products = [], ratio = [], mg = 2000, excess = {}, match_all = True, progress_bar = True):
         '''
-        products: list
-        ratio: list/np.ndarray/pd.DataFrame (shape = (n, len(materials)))
-        mg: int/float default: 2000．完成量 [mg]
-        excess: dict default: {} 過剰量を{組成: 割合}のリストで与える．（e.g. {'Li2O': 0.05} → Li2Oを5 mol%過剰に入れる．)
+        calculate weighing
+
+        Parameters
+        ----------
+        products : list, optional
+            [description], by default []
+        ratio : list, optional
+            [description], by default []
+        mg : int, optional
+            完成量, by default 2000
+        excess : dict, optional
+            過剰量 e.g. {'Li2O': 0.05}, by default {}
+        match_all : bool, optional
+            完全一致していないとダメかどうか, by default True
+        progress_bar : bool, optional
+            進捗バーを表示するかどうか, by default True
+
+        Raises
+        ------
+        ValueError
         '''
         if len(products) * len(ratio):  # 両方に入力があったら．
             raise ValueError('You can only enter either "products" or "ratio".')
@@ -53,7 +71,7 @@ class WeighingCalculator:
         self.moles = []
 
         # dataframeを各行ごとに取り出す．
-        for product, ratio in tqdm(self.df_ratio.iterrows()) if progress_bar else self.df_ratio.iterrows():
+        for product, ratio in self.df_ratio.iterrows():
             mole = mg / self.dict_products[product].weight
             self.moles.append(mole)
             if ratio.isnull().all():    # anyのほうが良い気もする．
@@ -378,6 +396,6 @@ class Menu:
     
             
 if __name__ == '__main__':
-    from pdb import set_trace
+    # from pdb import set_trace
     app = gui()
     app.run()
