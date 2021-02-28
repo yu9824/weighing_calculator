@@ -1,3 +1,8 @@
+'''
+Copyright (c) 2021, yu-9824
+This software is released under the GNU LESSER GENERAL PUBLIC LICENSE Version 3 License, see LICENSE.
+'''
+
 from pymatgen.core.composition import Composition
 from element_recognition import get_ratio, make_compositions
 from math import isclose
@@ -402,7 +407,7 @@ class Menu:
     def __init__(self, layout = ((sg.Text('You have to add something to show.')),)):
         self.layout = layout
         self.menu_def = [
-            ['Menu', ['Setting']],
+            ['Menu', ['About {}'.format(APP_NAME), '---', 'Setting']],
         ]
 
     def make_window(self, **options):
@@ -422,6 +427,12 @@ class Menu:
         if self.event == 'Setting':
             if _change_setting():   # 設定に反映させるために閉じる場合
                 self.window.close()
+        elif self.event == 'About {}'.format(APP_NAME):
+            with open('about.txt', mode = 'r', encoding = 'utf_8') as f:
+                lcns = f.read()
+            sg.PopupOK(lcns, modal= False, keep_on_top= True, title = 'About {}'.format(APP_NAME))
+            
+            
     
 def _change_setting():
     settings = json.load(open(path_settings, mode = 'r', encoding = 'utf_8'))
