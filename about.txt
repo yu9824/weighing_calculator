@@ -1,6 +1,6 @@
-Copyright (c) 2021 yu-9824
+Copyright (c) 2021 yu9824
 This software is released under the GNU Lesser General Public License Version 3,
-see https://github.com/yu-9824/weighing_calculator/blob/main/LICENSE.
+see https://github.com/yu9824/weighing_calculator/blob/main/LICENSE.
 
 This software uses the following libraries.
 
@@ -15,13 +15,9 @@ BSD 3-Clause License
 Copyright (c) 2005-2021, NumPy Developers.
 All rights reserved.
 
-xlwt: https://xlwt.readthedocs.io/en/latest
-BSD Licence
-Copyright (c) 2010, Manfred Moitzi
-
-element_recognition: https://github.com/yu-9824/element_recognition
+element_recognition: https://github.com/yu9824/element_recognition
 MIT License
-Copyright (c) 2021, yu-9824
+Copyright (c) 2021, yu9824
 
 PySimpleGUI: https://pysimplegui.readthedocs.io/en/latest/
 GNU Lesser General Public License Version 3

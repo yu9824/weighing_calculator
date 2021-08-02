@@ -26,7 +26,8 @@ EMAIL = '{0}@{1}'.format('yu.9824.job', 'gmail.com')
 # py2app用の変数
 SRC = ['main.py']
 DATA_FILES = ['settings.json', 'LICENSE', 'about.txt']
-PKGS = ['pandas', 'numpy', 'xlwt', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
+# PKGS = ['pandas', 'numpy', 'xlwt', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
+PKGS = ['pandas', 'numpy', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
 ICON = os.path.join('icon', '{}.icns'.format(APP_NAME))
 # --------------------------------------------------------------------
 
@@ -38,6 +39,7 @@ python3.8で以前やったときはこのエラーがでなかった．
 * 3.8にアップデートしてやってみる．
     → 3.8だとsetupのほうがエラー起きるので3.6でやってみる．
     3.6は起動後に関数が呼び出せないと言われる
+    python3.9.6では動いた！！
 
 setup.pyに関する参考サイト
 * https://packaging.python.org/guides/distributing-packages-using-setuptools/#packages
