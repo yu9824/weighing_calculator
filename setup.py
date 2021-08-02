@@ -15,13 +15,13 @@ sys.setrecursionlimit(10 ** 9)
 
 
 # ------------------------ ここを変更 --------------------------------
-VERSION = '0.4.0'
+VERSION = '0.4.1'
 VERSION_PYTHON = '{0}.{1}'.format(sys.version_info.major, sys.version_info.minor)
 APP_NAME = 'weighing_calculator'
 DESCRIPTION = 'Calculate weghing.'
-AUTHOR = 'yu-9824'
-ID = 'yu-9824'
-EMAIL = '{0}@{1}'.format('yu.9824', 'gmail.com')
+AUTHOR = 'yu9824'
+ID = 'yu9824'
+EMAIL = '{0}@{1}'.format('yu.9824.job', 'gmail.com')
 
 # py2app用の変数
 SRC = ['main.py']

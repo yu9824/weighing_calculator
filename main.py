@@ -1,5 +1,5 @@
 '''
-Copyright (c) 2021, yu-9824
+Copyright (c) 2021, yu9824
 This software is released under the GNU LESSER GENERAL PUBLIC LICENSE Version 3 License, see LICENSE.
 '''
 
