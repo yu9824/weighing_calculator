@@ -3,12 +3,16 @@
 This is a package for performing weighing calculations, with GUI operation available only on OS X.
 
 ## How to install 
-```Shell
+You can check the [Releases](https://github.com/yu9824/weighing_calculator/releases) and directly download the file in `.app` format for a specific version.
+
+
+Alternatively, you can also clone the git repository and setup it on your own computer.
+```bash
 git clone https://github.com/yu9824/weighing_calculator.git
 ```
-Alternatively, you can check the [Releases](https://github.com/yu9824/weighing_calculator/releases) and directly download the file in `.app` format for a specific version.
 
-I think it's easier this way.
+I think the former way is easier.
+
 
 ## How to setup GUI app when you clone this repository
 Execute the following command in an environment where the package described in ```requirements.txt``` has been installed.
@@ -30,3 +34,13 @@ python3 setup.py py2app -A
 This software is released under the GNU LESSER GENERAL PUBLIC LICENSE Version 3, see [LICENSE](https://github.com/yu9824/weighing_calculator/blob/main/LICENSE).
 
 Copyright © 2021,  yu9824
+
+
+## History
+### v0.5.0
+Rename username.
+Update python from python3.7 to python3.9.6
+Delete xlwt from requirements (only openpyxl is enough.)
+py2app=0.24 does not work correctly, thus I use py2app=0.23
+
+Note: latest pymatgen has some error. (Import error occurred.) So we use pymatgen=2020.12.31

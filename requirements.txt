@@ -1,8 +1,8 @@
+python==3.9.6
 pandas
 numpy
-xlwt
 element_recognition>=0.1.1
 PySimpleGUI
-pymatgen
+pymatgen==2020.12.31
 openpyxl
-py2app
+py2app==0.23
