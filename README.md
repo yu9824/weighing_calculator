@@ -2,7 +2,7 @@
 ## What is this.
 This is a package for performing weighing calculations, with GUI operation available only on OS X.
 
-## How to install 
+## How to install
 You can check the [Releases](https://github.com/yu9824/weighing_calculator/releases) and directly download the file in `.app` format for a specific version.
 
 
@@ -14,12 +14,18 @@ git clone https://github.com/yu9824/weighing_calculator.git
 I think the former way is easier.
 
 
-## How to setup GUI app when you clone this repository
+### How to setup GUI app when you clone this repository
 Execute the following command in an environment where the package described in ```requirements.txt``` has been installed.
-```Shell
+```bash
 cd weighing_calculator
 python3 setup.py py2app -A
 ```
+
+## How to uninstall
+You only need to delete `.app`. Namely, move the app to trash.
+
+If you would like to update the app, please uninstall it at first and reinstall the newer version.
+
 
 ## How to use
 ![start menu](https://github.com/yu9824/weighing_calculator/blob/67b3611eaf948b65c13703f8539a0c9e99eaeb5a/example/img/start_menu.png)
