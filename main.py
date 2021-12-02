@@ -39,7 +39,7 @@ class WeighingCalculator:
         self.materials = materials
         self.dict_materials = {material: Composition(material) for material in materials}
 
-    def calc(self, products = [], ratio = [], mg = 2000, excess = {}, match_all = True, progress_bar = True):
+    def calc(self, products = [], ratio = [], mg = 2000, excess = {}, exact = True, progress_bar = True):
         '''
         calculate weighing
 
@@ -53,7 +53,7 @@ class WeighingCalculator:
             完成量, by default 2000
         excess : dict, optional
             過剰量 e.g. {'Li2O': 0.05}, by default {}
-        match_all : bool, optional
+        exact : bool, optional
             完全一致していないとダメかどうか, by default True
         progress_bar : bool, optional
             進捗バーを表示するかどうか, by default True
@@ -65,7 +65,7 @@ class WeighingCalculator:
         if len(products) * len(ratio):  # 両方に入力があったら．
             raise ValueError('You can only enter either "products" or "ratio".')
         elif len(products):
-            self.df_ratio = get_ratio(materials=self.materials, products = products, match_all = match_all)
+            self.df_ratio = get_ratio(materials=self.materials, products = products, exact = exact)
         elif len(ratio):
             products = make_compositions(self.materials, ratio = ratio).index.to_numpy().tolist()
             if isinstance(ratio, pd.DataFrame):
@@ -113,9 +113,9 @@ class WeighingCalculator:
 
 
 class gui:
-    def __init__(self, theme = 'SystemDefault'):
+    def __init__(self, theme = 'LightGray1'):
         '''
-        theme: 'SystemDefault' or 'Black'
+        theme: 'LightGray1' or 'Black'
         '''
         # load setting
         try:
@@ -124,7 +124,7 @@ class gui:
             pass
         else:
             if self.settings['theme'] == 'light':
-                theme = 'SystemDefault'
+                theme = 'LightGray1'
             elif self.settings['theme'] == 'dark':
                 theme = 'Black'
         finally:
@@ -299,17 +299,17 @@ class gui:
                     except ValueError:  # try内で指定したValueError以外も含めて．
                         sg.popup_error('You have not entered any. Or the value you entered is not good.\nCorrect: 1/3, 1, 1.0, 3.141 etc.', **option_text_default, modal = False, keep_on_top=True)
                         continue
-                    wc.calc(ratio = list(dict_ratio.values()), mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
+                    wc.calc(ratio = list(dict_ratio.values()), mg = mg, excess = dict_excess, exact = True, progress_bar = False)
                 elif 'product' in calculation_menu.event:
                     if calculation_menu.values['product'] == '':
                         sg.popup_error('Nothing has been entered.', **option_text_default, modal = False, keep_on_top=True)
                         continue
-                    try:    # match_all=Trueでうまくいかなかったとき
-                        wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = True, progress_bar = False)
+                    try:    # exact=Trueでうまくいかなかったとき
+                        wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, exact = True, progress_bar = False)
                     except ValueError:
                         try:
-                            wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, match_all = False, progress_bar = False)
-                        except ValueError:  # match_all=Falseでもうまくいかなかったとき
+                            wc.calc(products=[calculation_menu.values['product']], mg = mg, excess = dict_excess, exact = False, progress_bar = False)
+                        except ValueError:  # exact=Falseでもうまくいかなかったとき
                             sg.PopupError('The composition you have entered is invalid.', **option_text_default, modal = False, keep_on_top=True)
                             continue
                         else:
