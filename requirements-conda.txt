@@ -1,0 +1,6 @@
+pandas==1.3.4
+numpy==1.21.4
+PySimpleGUI==4.55.1
+pymatgen==2022.0.16
+openpyxl==3.0.9
+py2app==0.26.1

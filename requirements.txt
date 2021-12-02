@@ -1,8 +1,0 @@
-python==3.9.6
-pandas
-numpy
-element_recognition>=0.1.1
-PySimpleGUI
-pymatgen==2020.12.31
-openpyxl
-py2app==0.23
