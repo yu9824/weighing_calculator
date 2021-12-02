@@ -2,6 +2,18 @@
 ## What is this.
 This is a package for performing weighing calculations, with GUI operation available only on OS X.
 
+## How to build
+```bash
+conda create -yn wc python=3.8.8 -c conda-forge --file=requirements-conda.txt
+conda activate wc
+pip install -r requirements-pip.txt
+```
+
+If you would like to develop by using jupyter, you have to install jupyter like this;
+```bash
+conda install jupyter
+```
+
 ## How to install
 You can check the [Releases](https://github.com/yu9824/weighing_calculator/releases) and directly download the file in `.app` format for a specific version.
 
