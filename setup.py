@@ -27,7 +27,7 @@ EMAIL = '{0}@{1}'.format('yu.9824.job', 'gmail.com')
 SRC = ['main.py']
 DATA_FILES = ['settings.json', 'LICENSE', 'about.txt', 'lang.json']
 # PKGS = ['pandas', 'numpy', 'xlwt', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
-PKGS = ['pandas', 'numpy', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
+PKGS = ['pandas', 'numpy', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl', 'pillow', 'ruamel']
 ICON = os.path.join('icon', '{}.icns'.format(APP_NAME))
 # --------------------------------------------------------------------
 
@@ -67,7 +67,8 @@ if 'py2app' in sys.argv:
 
     OPTIONS = {
         'argv_emulation': False,
-        'packages': PKGS,
+        'packages': find_packages(exclude=['example', 'test', 'how_to_use']),
+        # 'packages': PKGS,
         'iconfile': ICON,
         'plist':{
             'PyRuntimeLocations':[
@@ -82,7 +83,7 @@ if 'py2app' in sys.argv:
             'CFBundleShortVersionString': VERSION,
             'NSHumanReadableCopyright': u"Copyright © 2020-, {}".format(AUTHOR)
         },
-        # 'frameworks': dylib_files,
+        'frameworks': dylib_files,
     }
 
     setup(
