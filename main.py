@@ -150,9 +150,9 @@ class gui:
         menu_n_materials.layout = [
             [sg.Text(self.lang_dict[self.lang]['start_menu'], font = (font_default, 25))],
             [sg.Text('')],
-            [sg.Text('原料の数'), sg.InputText(key = 'n_materials', size = (3, 1), justification='right')],
+            [sg.Text(self.lang_dict[self.lang]['n_materials']), sg.InputText(key = 'n_materials', size = (3, 1), justification='right')],
             [sg.Text('')],
-            [sg.Submit('Next')]
+            [sg.Submit(self.lang_dict[self.lang]['next'], key = 'Next')]
         ]
 
         # windowの生成
@@ -224,7 +224,7 @@ class gui:
         get_materials_compositions = Menu()
 
         # 原料を入力するやつ
-        entering_compositions_layout = [[sg.Text('原料{}'.format(n+1), size = (6, 1)), sg.InputText(default_text=cached_material, size = (10, 1), key = 'material{}'.format(n+1))] for n, cached_material in enumerate(self._load_cache_materials(n_materials))]
+        entering_compositions_layout = [[sg.Text('{0}{1}'.format(self.lang_dict[self.lang]['material'], n+1), size = (8, 1)), sg.InputText(default_text=cached_material, size = (10, 1), key = 'material{}'.format(n+1))] for n, cached_material in enumerate(self._load_cache_materials(n_materials))]
 
         # このページのlayoutの作成
         if n_materials > self.threshold_scroll: # 数が多いときはスクロールできるように．
@@ -234,8 +234,8 @@ class gui:
         else:
             get_materials_compositions.layout = entering_compositions_layout
         # buttonとタイトルは共通なので足す．
-        get_materials_compositions.layout.insert(0, [sg.Text('出発物質入力画面')])
-        get_materials_compositions.layout.extend([[sg.Text('')], [sg.Submit('Confirm')]])
+        get_materials_compositions.layout.insert(0, [sg.Text(self.lang_dict[self.lang]['starting_materials_input'])])
+        get_materials_compositions.layout.extend([[sg.Text('')], [sg.Submit(self.lang_dict[self.lang]['confirm'], key='Confirm')]])
 
         # windowの生成
         get_materials_compositions.make_window()
@@ -286,16 +286,16 @@ class gui:
         else:
             layout_ratio = layout_entering_ratio
         # buttonは共通なので足す．
-        layout_ratio.extend([[sg.Text('')], [sg.Submit('Calc (ratio)', key = 'Calc_ratio')]])
+        layout_ratio.extend([[sg.Text('')], [sg.Submit(self.lang_dict[self.lang]['calc_ratio'], key = 'Calc_ratio')]])
 
         frame_ratio = sg.Frame('', layout = layout_ratio, **options_frame)
 
         # 生成物を入力するやつ
         layout_product = [
-            [sg.Text('生成物を入力する場合')],
+            [sg.Text(self.lang_dict[self.lang]['calc_from_product'])],
             [sg.InputText(size = (15, 1), key = 'product')],
             [sg.Text('')],
-            [sg.Submit('Calc (Composition)', key = 'Calc_product')],
+            [sg.Submit(self.lang_dict[self.lang]['calc_product'], key = 'Calc_product')],
         ]
         frame_product = sg.Frame('', layout = layout_product,  **{k:v for k, v in options_frame.items() if k != 'border_widht'})
 
@@ -305,23 +305,23 @@ class gui:
             layout_excess = [[sg.Column(layout_excess, scrollable=True, vertical_scroll_only=True, justification='center')]]
         # layout_excess.insert(0, [sg.Text('過剰量', justification='center')])
             
-        frame_excess = sg.Frame('過剰量', layout = layout_excess, **{k:v for k, v in options_frame.items() if k != 'border_width'})
+        frame_excess = sg.Frame(self.lang_dict[self.lang]['excess'], layout = layout_excess, **{k:v for k, v in options_frame.items() if k != 'border_width'})
 
         # 完成量を入力するやつ
         layout_mg = [
-            [sg.Text('理論完成量（過剰量を含まない）')],
+            [sg.Text(self.lang_dict[self.lang]['theoretical_amount'])],
             [sg.InputText('2000', key = 'mg', size = (7, 1), justification='right'), sg.Text('mg')]
         ]
         frame_mg = sg.Frame('', layout=layout_mg, **options_frame)
 
         # このページ全体のlayout
         calculation_menu.layout = [
-            [sg.Text('秤量計算画面')],
+            [sg.Text(self.lang_dict[self.lang]['calc_screen'])],
             [frame_mg],
             [sg.Text('')],
             [frame_ratio, sg.Text(' '), frame_product],
             [sg.Text('_'*100)],
-            [sg.Text('共通の設定', justification='left')],
+            [sg.Text(self.lang_dict[self.lang]['common_settings'], justification='left')],
             [frame_excess]
         ]
         
@@ -390,7 +390,7 @@ class gui:
         # layoutの作成
         table_menu.layout = [
             [sg.Table(df_output_show.to_numpy().tolist(), headings = df_output_show.columns.to_numpy().tolist(), col_widths = [16] + [10] * (df_output_show.shape[1]-2) + [16], auto_size_columns = False, hide_vertical_scroll=False)],
-            [sg.Cancel(), sg.InputText(key='SaveAs', do_not_clear=False, enable_events=True, visible=False), sg.FileSaveAs('SaveAs', default_extension = '.xlsx', file_types = (('Excel file', '*.xlsx'),))],   # do_not_clearをFalseにしないとCancelしても上書きされてしまう．あと，sg.FilseSaveAsのenable_event = Trueにしてもenentが発生しないのでsg.InputTextで受け取るときにeventを発生させている．
+            [sg.Cancel(self.lang_dict[self.lang]['cancel']), sg.InputText(key='SaveAs', do_not_clear=False, enable_events=True, visible=False), sg.FileSaveAs(self.lang_dict[self.lang]['save_as'], default_extension = '.xlsx', file_types = (('Excel file', '*.xlsx'),))],   # do_not_clearをFalseにしないとCancelしても上書きされてしまう．あと，sg.FilseSaveAsのenable_event = Trueにしてもenentが発生しないのでsg.InputTextで受け取るときにeventを発生させている．
         ]
 
         # windowの作成
@@ -495,15 +495,13 @@ def _change_setting():
         '日本語': 'ja',
         'English': 'en',
     }
-    for k, v in corr_lang.items():
-        corr_lang[v] = k
+    corr_lang.update({v:k for k, v in corr_lang.items()})
 
     corr_theme = {
         'Light': 'light',
         'Dark': 'dark',
     }
-    for k, v in corr_theme.items():
-        corr_theme[v] = k
+    corr_theme.update({v:k for k, v in corr_theme.items()})
 
     setting_menu = Menu(layout = [
         [sg.Text('Setting')],
@@ -520,8 +518,7 @@ def _change_setting():
         do_close = False    # 再起動するかどうか
         if setting_menu.event == 'OK':
             settings = {
-                # 'lang': corr_lang[setting_menu.values['lang']],
-                'lang': 'ja',
+                'lang': corr_lang[setting_menu.values['lang']],
                 'theme': corr_theme[setting_menu.values['theme']]
                 }
             event = sg.PopupYesNo('You will need to reboot to apply the configuration changes.\nCan I close it to apply the settings?', modal = False, keep_on_top = True, **option_text_default)

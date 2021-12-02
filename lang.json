@@ -1,8 +1,36 @@
 {
     "ja": {
-        "start_menu": "スタート画面"
+        "start_menu": "スタート画面",
+        "n_materials": "原料の数",
+        "next": "次へ",
+        "material": "原料",
+        "confirm": "確認",
+        "starting_materials_input": "出発物質入力画面",
+        "calc_ratio": "計算(量論比)",
+        "calc_from_product": "生成物を入力する場合",
+        "calc_product": "計算(生成物)",
+        "theoretical_amount": "理論完成量（過剰量を含まない）",
+        "excess": "過剰量",
+        "calc_screen": "秤量計算画面",
+        "common_settings": "共通の設定",
+        "cancel": "キャンセル",
+        "save_as": "保存"
     },
     "en": {
-        "start_menu": "Start Menu"
+        "start_menu": "Start Menu",
+        "n_materials": "Number of Materials: ",
+        "next": "Next",
+        "material": "material",
+        "confirm": "Confirm",
+        "starting_materials_input": "Starting Materials",
+        "calc_ratio": "Calc (ratio)",
+        "calc_from_product": "When calculating from products",
+        "calc_product": "Calc (product)",
+        "theoretical_amount": "Theoretical Amount (w/o excess)",
+        "excess": "Excess",
+        "calc_screen": "Weighing Calculation Screen",
+        "common_settings": "Common Settings",
+        "cancel": "Cancel",
+        "save_as": "Save as"
     }
 }
