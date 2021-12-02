@@ -130,7 +130,16 @@ class gui:
         finally:
             sg.theme(theme)
 
-        lang = self.settings['lang']
+        self.lang = self.settings['lang']
+
+        # constants
+        self.threshold_scroll = 4
+        self.fname_cache_materials = 'cache_materials.json'
+        self.fname_lang = 'lang.json'
+
+        if os.path.isfile(self.fname_lang):
+            with open(self.fname_lang, mode = 'r', encoding = 'utf_8') as f:
+                self.lang_dict = json.load(f)
          
 
     def run(self):
@@ -139,7 +148,7 @@ class gui:
 
         # layoutの作成
         menu_n_materials.layout = [
-            [sg.Text('スタート画面', font = (font_default, 25))],
+            [sg.Text(self.lang_dict[self.lang]['start_menu'], font = (font_default, 25))],
             [sg.Text('')],
             [sg.Text('原料の数'), sg.InputText(key = 'n_materials', size = (3, 1), justification='right')],
             [sg.Text('')],
@@ -165,6 +174,49 @@ class gui:
                     menu_n_materials.window.close()
                     self._get_materials_compositions(n_materials)
                     break
+    
+    def _load_cache_materials(self, n_materials:int)->list:
+        """load_cache_materials
+
+        Parameters
+        ----------
+        n_materials : int
+            how many materials
+
+        Returns
+        -------
+        list
+            cached materials or empty list (length = n_materials)
+        """
+        if os.path.isfile(self.fname_cache_materials):
+            with open(self.fname_cache_materials, mode = 'r', encoding = 'utf_8') as f:
+                chache_materials:dict = json.load(f)
+            if str(n_materials) in chache_materials:    # converted to str because of json format.
+                return chache_materials[str(n_materials)]
+        return ['' for _ in range(n_materials)]
+        
+    def _dump_cache_materials(self, materials:list):
+        """dump_cache_materials
+
+        Parameters
+        ----------
+        materials : list
+            materials
+
+        Returns
+        -------
+        None
+        """
+        n_materials = len(materials)
+        if os.path.isfile(self.fname_cache_materials):
+            with open(self.fname_cache_materials, mode = 'r', encoding = 'utf_8') as f:
+                chache_materials:dict = json.load(f)
+        else:
+            chache_materials = {}
+        chache_materials[str(n_materials)] = materials
+        with open(self.fname_cache_materials, mode = 'w', encoding = 'utf_8') as f:
+            json.dump(chache_materials, f, indent=4)
+        
                 
 
     def _get_materials_compositions(self, n_materials):
@@ -172,10 +224,10 @@ class gui:
         get_materials_compositions = Menu()
 
         # 原料を入力するやつ
-        entering_compositions_layout = [[sg.Text('原料{}'.format(n+1), size = (6, 1)), sg.InputText(size = (10, 1), key = 'material{}'.format(n+1))] for n in range(n_materials)]
+        entering_compositions_layout = [[sg.Text('原料{}'.format(n+1), size = (6, 1)), sg.InputText(default_text=cached_material, size = (10, 1), key = 'material{}'.format(n+1))] for n, cached_material in enumerate(self._load_cache_materials(n_materials))]
 
         # このページのlayoutの作成
-        if n_materials > 5: # 数が多いときはスクロールできるように．
+        if n_materials > self.threshold_scroll: # 数が多いときはスクロールできるように．
             get_materials_compositions.layout = [
                 [sg.Column(entering_compositions_layout, scrollable = True, vertical_scroll_only=True, size = (400, 225), justification='center')],
             ]
@@ -201,6 +253,7 @@ class gui:
                     continue
                 # windowを閉じてから次のwindowを開く
                 get_materials_compositions.window.close()
+                self._dump_cache_materials(materials=list(dict_materials.values()))
                 self._calculation_menu(dict_materials)
                 break
 
@@ -214,7 +267,7 @@ class gui:
         options_frame = {
             'border_width':0,
             'element_justification':'center',
-            'size' : (300, 200)
+            # 'size' : (300, 300)
         }
 
         # 原料比を入力するやつ
@@ -225,7 +278,8 @@ class gui:
             'size': (220, 170),
             'justification': 'center'
         }
-        if n_materials > 5: # スクロールできるように．
+
+        if n_materials > self.threshold_scroll: # スクロールできるように．
             layout_ratio = [
                 [sg.Column(layout_entering_ratio, scrollable = True, vertical_scroll_only=True, **options_layout_ratio)],
             ]
@@ -247,7 +301,7 @@ class gui:
 
         # 過剰量を入力するやつ
         layout_excess = [[sg.Text(dict_materials['material{}'.format(n+1)], size = (6, 1)), sg.InputText('0.00', key = '{}_excess'.format(dict_materials['material{}'.format(n+1)]), size = (7, 1), justification='right'), sg.Text('mol%')] for n in range(n_materials)]
-        if n_materials > 5: # スクロールできるように
+        if n_materials > self.threshold_scroll: # スクロールできるように
             layout_excess = [[sg.Column(layout_excess, scrollable=True, vertical_scroll_only=True, justification='center')]]
         # layout_excess.insert(0, [sg.Text('過剰量', justification='center')])
             
@@ -265,13 +319,13 @@ class gui:
             [sg.Text('秤量計算画面')],
             [frame_mg],
             [sg.Text('')],
-            [frame_ratio, frame_product],
+            [frame_ratio, sg.Text(' '), frame_product],
             [sg.Text('_'*100)],
             [sg.Text('共通の設定', justification='left')],
             [frame_excess]
         ]
         
-        calculation_menu.make_window(size = (1200, 775))
+        calculation_menu.make_window(size = (1200, 775), resizable = True)
         while True:
             calculation_menu.read()
             if calculation_menu.event is None:
@@ -440,20 +494,21 @@ def _change_setting():
     corr_lang = {
         '日本語': 'ja',
         'English': 'en',
-        'ja': '日本語',
-        'en': 'English'
     }
+    for k, v in corr_lang.items():
+        corr_lang[v] = k
+
     corr_theme = {
         'Light': 'light',
         'Dark': 'dark',
-        'light': 'Light',
-        'dark': 'Dark',
     }
+    for k, v in corr_theme.items():
+        corr_theme[v] = k
 
     setting_menu = Menu(layout = [
         [sg.Text('Setting')],
         [sg.Text('')],
-        # [sg.Text('Langage'), sg.Combo(['日本語', 'English'], default_value = corr_lang[settings['lang']], key = 'lang')],
+        [sg.Text('Langage'), sg.Combo(['日本語', 'English'], default_value = corr_lang[settings['lang']], key = 'lang')],
         [sg.Text('Theme'), sg.Combo(['Light', 'Dark'], default_value = corr_theme[settings['theme']], key = 'theme')],
         [sg.Text('')],
         [sg.Cancel(), sg.OK()]
