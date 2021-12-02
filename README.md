@@ -5,7 +5,7 @@ This is a package for performing weighing calculations, with GUI operation avail
 ## How to build
 
 ```bash
-conda create -yn wc python=3.8.10 -c conda-forge --file=requirements-conda.txt
+conda create -yn wc python=3.9.6 -c conda-forge --file=requirements-conda.txt
 conda activate wc
 pip install -r requirements-pip.txt
 ```
@@ -70,5 +70,6 @@ Note: latest pymatgen has some error. (Import error occurred.) So we use pymatge
 ### v0.6.0
 3.10.0はサポートしていると書かれているのものサポートされていないと考える方が妥当な結果．（ビルドに失敗する．）
 Downgrade python to 3.8.10.
+Montereyだとpython3.8でpysimpleguiのsaveasが動かない．
 日本語と英語に対応．
 前回入力した原料をキャッシュとして保持できる．
