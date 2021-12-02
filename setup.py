@@ -15,7 +15,7 @@ sys.setrecursionlimit(10 ** 9)
 
 
 # ------------------------ ここを変更 --------------------------------
-VERSION = '0.5.0'
+VERSION = '0.6.0'
 VERSION_PYTHON = '{0}.{1}'.format(sys.version_info.major, sys.version_info.minor)
 APP_NAME = 'weighing_calculator'
 DESCRIPTION = 'Calculate weghing.'
@@ -25,7 +25,7 @@ EMAIL = '{0}@{1}'.format('yu.9824.job', 'gmail.com')
 
 # py2app用の変数
 SRC = ['main.py']
-DATA_FILES = ['settings.json', 'LICENSE', 'about.txt']
+DATA_FILES = ['settings.json', 'LICENSE', 'about.txt', 'lang.json']
 # PKGS = ['pandas', 'numpy', 'xlwt', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
 PKGS = ['pandas', 'numpy', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
 ICON = os.path.join('icon', '{}.icns'.format(APP_NAME))
@@ -100,18 +100,4 @@ if 'py2app' in sys.argv:
     # aliasモードじゃないとき．
     # if not alias:
     #     {copyfile(f, os.path.join(frameworks_path, os.path.basename(f))) for f in dylib_files}
-else:
-    with open('requirements.txt') as requirements_file:
-        install_requirements = requirements_file.read().splitlines()
 
-    setup(
-        name = APP_NAME,
-        version = VERSION,
-        description = DESCRIPTION,
-        author = AUTHOR,
-        author_email = EMAIL,
-        install_requires = install_requirements,
-        url = 'https://github.com/{0}/{1}'.format(ID, APP_NAME),
-        # license = license,
-        packages = find_packages(exclude=['example'])
-    )

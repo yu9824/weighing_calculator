@@ -66,3 +66,8 @@ Delete xlwt from requirements (only openpyxl is enough.)
 py2app=0.24 does not work correctly, thus I use py2app=0.23
 
 Note: latest pymatgen has some error. (Import error occurred.) So we use pymatgen=2020.12.31
+
+### v0.6.0
+Update python to 3.10.0.
+日本語と英語に対応．
+前回入力した原料をキャッシュとして保持できる．
