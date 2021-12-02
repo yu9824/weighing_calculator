@@ -3,13 +3,15 @@
 This is a package for performing weighing calculations, with GUI operation available only on OS X.
 
 ## How to build
+
 ```bash
-conda create -yn wc python=3.8.8 -c conda-forge --file=requirements-conda.txt
+conda create -yn wc python=3.10.0 -c conda-forge --file=requirements-conda.txt
 conda activate wc
 pip install -r requirements-pip.txt
 ```
 
 If you would like to develop by using jupyter, you have to install jupyter like this;
+
 ```bash
 conda install jupyter
 ```
@@ -19,6 +21,7 @@ You can check the [Releases](https://github.com/yu9824/weighing_calculator/relea
 
 
 Alternatively, you can also clone the git repository and setup it on your own computer.
+
 ```bash
 git clone https://github.com/yu9824/weighing_calculator.git
 ```
@@ -27,7 +30,8 @@ I think the former way is easier.
 
 
 ### How to setup GUI app when you clone this repository
-Execute the following command in an environment where the package described in ```requirements.txt``` has been installed.
+Execute the following command in an environment where the package described in `requirements.txt` has been installed.
+
 ```bash
 cd weighing_calculator
 python3 setup.py py2app -A
@@ -54,7 +58,7 @@ This software is released under the GNU LESSER GENERAL PUBLIC LICENSE Version 3,
 Copyright © 2021,  yu9824
 
 
-## History
+## Histories
 ### v0.5.0
 Rename username.
 Update python from python3.7 to python3.9.6
