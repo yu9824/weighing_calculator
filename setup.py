@@ -25,9 +25,9 @@ EMAIL = '{0}@{1}'.format('yu.9824.job', 'gmail.com')
 
 # py2app用の変数
 SRC = ['main.py']
-DATA_FILES = ['settings.json', 'LICENSE', 'about.txt', 'lang.json']
+DATA_FILES = ['settings.json', 'LICENSE', 'about.txt', 'lang.json', 'atomic_weights.csv']
 # PKGS = ['pandas', 'numpy', 'xlwt', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl']
-PKGS = ['pandas', 'numpy', 'element_recognition', 'PySimpleGUI', 'pymatgen', 'openpyxl', 'pillow', 'ruamel']
+PKGS = ['pandas', 'numpy', 'element_recognition', 'PySimpleGUI', 'openpyxl']
 ICON = os.path.join('icon', '{}.icns'.format(APP_NAME))
 # --------------------------------------------------------------------
 
