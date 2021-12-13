@@ -39,7 +39,9 @@ python3.8で以前やったときはこのエラーがでなかった．
 * 3.8にアップデートしてやってみる．
     → 3.8だとsetupのほうがエラー起きるので3.6でやってみる．
     3.6は起動後に関数が呼び出せないと言われる
-    python3.9.6では動いた！！
+    python3.9.6では動いた!!
+
+jupyterを仮想環境内にインストールしているときにビルドに失敗する気がする...
 
 setup.pyに関する参考サイト
 * https://packaging.python.org/guides/distributing-packages-using-setuptools/#packages
@@ -67,8 +69,8 @@ if 'py2app' in sys.argv:
 
     OPTIONS = {
         'argv_emulation': False,
-        'packages': find_packages(exclude=['example', 'test', 'how_to_use']),
-        # 'packages': PKGS,
+        # 'packages': find_packages(exclude=['example', 'test', 'how_to_use']),
+        'packages': PKGS,
         'iconfile': ICON,
         'plist':{
             'PyRuntimeLocations':[

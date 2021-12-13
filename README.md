@@ -5,7 +5,7 @@ This is a package for performing weighing calculations, with GUI operation avail
 ## How to build
 
 ```bash
-conda create -yn wc python=3.8.10 -c conda-forge --file=requirements-conda.txt
+conda create -yn wc python=3.9.6 -c conda-forge --file=requirements-conda.txt
 conda activate wc
 pip install -r requirements-pip.txt
 ```
