@@ -3,6 +3,7 @@ Copyright (c) 2021, yu9824
 This software is released under the GNU LESSER GENERAL PUBLIC LICENSE Version 3 License, see LICENSE.
 '''
 
+from typing import Tuple
 from element_recognition import get_ratio, make_compositions, element_recognition
 from math import isclose
 import pandas as pd
@@ -10,6 +11,7 @@ import numpy as np
 import PySimpleGUI as sg
 import os
 import json
+from openpyxl.utils import get_column_letter
 
 '''
 Mac OSX10.15においてmenubarがつかえないbugが起きるが，これはstandalone化すれば解決する．
@@ -428,25 +430,32 @@ class gui:
                 
         table_menu.window.close()
 
-    def _make_output(self, wc):
+    def _make_output(self, wc: WeighingCalculator) -> Tuple[pd.DataFrame, pd.DataFrame]:
         '''
         wc: WeighingCalculatorオブジェクト
         '''
         cols = wc.materials + wc.products
-        ind = ['M.W.', 'molar ratio', 'mole (mmol)', 'excess ratio (mol%)', 'mole w/ excess', 'no excess weight (mg)', 'weight (mg)', 'measured value (mg)']
+        ind_molar_weight = 'M.W.'
+        ind_mole = 'mole (mmol)'
+        ind = [ind_molar_weight, 'molar ratio', ind_mole, 'excess ratio (mol%)', 'mole w/ excess', 'no excess weight (mg)', 'weight (mg)', 'measured value (mg)']
         df_output = pd.DataFrame([[np.nan] * len(cols)] * len(ind), columns = cols, index = ind)
 
         # 式量を代入
         for material in wc.materials:
-            df_output.loc['M.W.', material] = wc.dict_materials[material]
-        df_output.loc['M.W.', wc.products[0]] = wc.dict_products[wc.products[0]]
+            df_output.loc[ind_molar_weight, material] = wc.dict_materials[material]
+        df_output.loc[ind_molar_weight, wc.products[0]] = wc.dict_products[wc.products[0]]
 
         # モル比を代入
         df_output.loc['molar ratio', wc.df_ratio.columns] = wc.df_ratio.values
         df_output.loc['molar ratio', wc.products] = 1
 
+        # 表示用のDataFrameを作成
+        df_output_show = df_output.copy()
+
         # モル数を代入
-        df_output.loc['mole (mmol)'] = df_output.loc['molar ratio'] * wc.moles[0]
+        df_output_show.loc[ind_mole] = df_output.loc['molar ratio'] * wc.moles[0]
+        df_output.loc[ind_mole, wc.products] = df_output_show.loc[ind_mole, wc.products]
+        df_output.loc[ind_mole] = ['={0}{1}*'.format(get_column_letter(col), ind.index(ind_mole), wc.moles[0]) for col, molar_ratio in enumerate(df_output.loc['molar ratio'])]
 
         # 過剰量
         for material, ex in wc.excess.items():
@@ -467,12 +476,11 @@ class gui:
         df_output.loc['weight (mg)', wc.products[0]] = df_output.loc['weight (mg)', wc.df_material_weight_excess.columns].sum()
 
         # 表示用のdf_outputを作成
-        df_output_show = df_output.applymap(lambda x:'{:.2f}'.format(x))
-        df_output_show.replace('nan', '', inplace=True)
+        # df_output_show = df_output.applymap(lambda x:'{:.2f}'.format(x))
+        # df_output_show.replace('nan', '', inplace=True)
 
+        print(df_output, df_output_show)
         return df_output, df_output_show
-        # print(wc.materials)
-        # df_output = pd.DataFrame()
 
 
 class Menu:
