@@ -3,8 +3,7 @@ Copyright (c) 2021, yu9824
 This software is released under the GNU LESSER GENERAL PUBLIC LICENSE Version 3 License, see LICENSE.
 '''
 
-from pymatgen.core.composition import Composition
-from element_recognition import get_ratio, make_compositions
+from element_recognition import get_ratio, make_compositions, element_recognition
 from math import isclose
 import pandas as pd
 import numpy as np
@@ -27,6 +26,7 @@ APP_NAME = 'Weighing Calculator'
 
 # 設定
 path_settings = os.path.join(os.path.dirname(__file__), 'settings.json')
+path_atomic_weights = os.path.join(os.path.dirname(__file__), 'atomic_weights.csv')
 
 class WeighingCalculator:
     def __init__(self, materials):
@@ -37,7 +37,8 @@ class WeighingCalculator:
             [description]
         '''
         self.materials = materials
-        self.dict_materials = {material: Composition(material) for material in materials}
+        self.df_atomic_weights = pd.read_csv(path_atomic_weights, index_col = 0, comment='#')
+        self.dict_materials = {material: self._get_formula_weight(material) for material in materials}
 
     def calc(self, products = [], ratio = [], mg = 2000, excess = {}, exact = True, progress_bar = True):
         '''
@@ -80,7 +81,7 @@ class WeighingCalculator:
         # comp_null = []
         
         products = self.df_ratio.index.to_numpy().tolist()  # self.df_ratioではproductsの空白を削除した組成名を得られるため，上書き．
-        self.dict_products = {product: Composition(product) for product in products}
+        self.dict_products = {product: self._get_formula_weight(product) for product in products}
         self.products = products
 
         self.excess = excess
@@ -94,12 +95,13 @@ class WeighingCalculator:
 
         # dataframeを各行ごとに取り出す．
         for product, ratio in self.df_ratio.iterrows():
-            mole = mg / self.dict_products[product].weight
+            mole = mg / self.dict_products[product]
             self.moles.append(mole)
             if ratio.isnull().all():    # anyのほうが良い気もする．
                 pass
             else:   # きちんと計算できていたら
-                sr_material_weight = pd.Series(ratio * mole * np.array([self.dict_materials[material].weight for material in self.materials]), index = self.materials, name = product)
+                print(self.dict_materials)
+                sr_material_weight = pd.Series(ratio * mole * np.array([self.dict_materials[material] for material in self.materials]), index = self.materials, name = product)
 
                 # 過剰量の計算
                 sr_material_weight_excess = sr_material_weight.copy()
@@ -110,6 +112,22 @@ class WeighingCalculator:
                 srs_material_weight_excess.append(sr_material_weight_excess.to_frame().transpose())
         self.df_material_weight = pd.concat(srs_material_weight, axis = 0, sort = False)
         self.df_material_weight_excess = pd.concat(srs_material_weight_excess, axis = 0, sort = False)
+    
+    def _get_formula_weight(self, formula:str) -> float:
+        """get formula weight
+
+        Parameters
+        ----------
+        formula : str
+            chemical formula, e.g.) 'Li2O'
+
+        Returns
+        -------
+        float
+            formula weight
+        """
+        return (element_recognition(formula, elements = self.df_atomic_weights.index.tolist()).values @ self.df_atomic_weights.values)[0][0]
+        
 
 
 class gui:
@@ -420,8 +438,8 @@ class gui:
 
         # 式量を代入
         for material in wc.materials:
-            df_output.loc['M.W.', material] = wc.dict_materials[material].weight
-        df_output.loc['M.W.', wc.products[0]] = wc.dict_products[wc.products[0]].weight
+            df_output.loc['M.W.', material] = wc.dict_materials[material]
+        df_output.loc['M.W.', wc.products[0]] = wc.dict_products[wc.products[0]]
 
         # モル比を代入
         df_output.loc['molar ratio', wc.df_ratio.columns] = wc.df_ratio.values
@@ -535,5 +553,7 @@ def _change_setting():
             
 if __name__ == '__main__':
     # from pdb import set_trace
+    # print(WeighingCalculator(['Li2O', 'SiO2', 'MoO3'])._get_formula_weight('Li2O'))
+    
     app = gui()
     app.run()
