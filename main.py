@@ -3,14 +3,18 @@ Copyright (c) 2021, yu9824
 This software is released under the GNU LESSER GENERAL PUBLIC LICENSE Version 3 License, see LICENSE.
 '''
 
-from pymatgen.core.composition import Composition
-from element_recognition import get_ratio, make_compositions
+from typing import Tuple
+from element_recognition import get_ratio, make_compositions, element_recognition
 from math import isclose
 import pandas as pd
 import numpy as np
 import PySimpleGUI as sg
 import os
 import json
+from glob import glob
+from openpyxl.utils import get_column_letter
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 
 '''
 Mac OSX10.15においてmenubarがつかえないbugが起きるが，これはstandalone化すれば解決する．
@@ -18,7 +22,7 @@ Mac OSX10.15においてmenubarがつかえないbugが起きるが，これはs
 
 # フォント
 font_default = 'Hiragino Sans CNS'
-font_size_default = 20
+font_size_default = 19
 option_text_default = {
     'font': (font_default, font_size_default),
 }
@@ -26,7 +30,9 @@ option_text_default = {
 APP_NAME = 'Weighing Calculator'
 
 # 設定
-path_settings = os.path.join(os.path.dirname(__file__), 'settings.json')
+path_root = os.path.abspath(os.path.dirname(__file__))
+path_settings = os.path.join(path_root, 'settings.json')
+path_atomic_weights = os.path.join(path_root, 'atomic_weights.csv')
 
 class WeighingCalculator:
     def __init__(self, materials):
@@ -37,7 +43,8 @@ class WeighingCalculator:
             [description]
         '''
         self.materials = materials
-        self.dict_materials = {material: Composition(material) for material in materials}
+        self.df_atomic_weights = pd.read_csv(path_atomic_weights, index_col = 0, comment='#')
+        self.dict_materials = {material: self._get_formula_weight(material) for material in materials}
 
     def calc(self, products = [], ratio = [], mg = 2000, excess = {}, exact = True, progress_bar = True):
         '''
@@ -62,6 +69,9 @@ class WeighingCalculator:
         ------
         ValueError
         '''
+
+        self.mg = mg
+
         if len(products) * len(ratio):  # 両方に入力があったら．
             raise ValueError('You can only enter either "products" or "ratio".')
         elif len(products):
@@ -80,7 +90,7 @@ class WeighingCalculator:
         # comp_null = []
         
         products = self.df_ratio.index.to_numpy().tolist()  # self.df_ratioではproductsの空白を削除した組成名を得られるため，上書き．
-        self.dict_products = {product: Composition(product) for product in products}
+        self.dict_products = {product: self._get_formula_weight(product) for product in products}
         self.products = products
 
         self.excess = excess
@@ -94,12 +104,12 @@ class WeighingCalculator:
 
         # dataframeを各行ごとに取り出す．
         for product, ratio in self.df_ratio.iterrows():
-            mole = mg / self.dict_products[product].weight
+            mole = mg / self.dict_products[product]
             self.moles.append(mole)
             if ratio.isnull().all():    # anyのほうが良い気もする．
                 pass
             else:   # きちんと計算できていたら
-                sr_material_weight = pd.Series(ratio * mole * np.array([self.dict_materials[material].weight for material in self.materials]), index = self.materials, name = product)
+                sr_material_weight = pd.Series(ratio * mole * np.array([self.dict_materials[material] for material in self.materials]), index = self.materials, name = product)
 
                 # 過剰量の計算
                 sr_material_weight_excess = sr_material_weight.copy()
@@ -110,6 +120,22 @@ class WeighingCalculator:
                 srs_material_weight_excess.append(sr_material_weight_excess.to_frame().transpose())
         self.df_material_weight = pd.concat(srs_material_weight, axis = 0, sort = False)
         self.df_material_weight_excess = pd.concat(srs_material_weight_excess, axis = 0, sort = False)
+    
+    def _get_formula_weight(self, formula:str) -> float:
+        """get formula weight
+
+        Parameters
+        ----------
+        formula : str
+            chemical formula, e.g.) 'Li2O'
+
+        Returns
+        -------
+        float
+            formula weight
+        """
+        return (element_recognition(formula, elements = self.df_atomic_weights.index.tolist()).values @ self.df_atomic_weights.values)[0][0]
+        
 
 
 class gui:
@@ -410,58 +436,114 @@ class gui:
                 
         table_menu.window.close()
 
-    def _make_output(self, wc):
+    def _make_output(self, wc: WeighingCalculator) -> Tuple[pd.DataFrame, pd.DataFrame]:
         '''
         wc: WeighingCalculatorオブジェクト
         '''
         cols = wc.materials + wc.products
-        ind = ['M.W.', 'molar ratio', 'mole (mmol)', 'excess ratio (mol%)', 'mole w/ excess', 'no excess weight (mg)', 'weight (mg)', 'measured value (mg)']
+        ind_molar_weight = 'M.W.'
+        ind_molar_ratio = 'molar ratio'
+        ind_mole = 'mole (mmol)'
+        ind_excess_ratio = 'excess ratio (mol%)'
+        ind_mole_with_excess = 'mole w/ excess'
+        ind_weight_without_excess = 'no excess weight (mg)'
+        ind_weight = 'weight (mg)'
+        ind = [ind_molar_weight, ind_molar_ratio, ind_mole, ind_excess_ratio, ind_mole_with_excess, ind_weight_without_excess, ind_weight, 'measured value (mg)']
+        
         df_output = pd.DataFrame([[np.nan] * len(cols)] * len(ind), columns = cols, index = ind)
 
         # 式量を代入
         for material in wc.materials:
-            df_output.loc['M.W.', material] = wc.dict_materials[material].weight
-        df_output.loc['M.W.', wc.products[0]] = wc.dict_products[wc.products[0]].weight
+            df_output.loc[ind_molar_weight, material] = wc.dict_materials[material]
+        df_output.loc[ind_molar_weight, wc.products[0]] = wc.dict_products[wc.products[0]]
 
         # モル比を代入
-        df_output.loc['molar ratio', wc.df_ratio.columns] = wc.df_ratio.values
-        df_output.loc['molar ratio', wc.products] = 1
+        df_output.loc[ind_molar_ratio, wc.df_ratio.columns] = wc.df_ratio.values
+        df_output.loc[ind_molar_ratio, wc.products] = 1
+
+        # 表示用のDataFrameを作成
+        df_output_show = df_output.copy()
 
         # モル数を代入
-        df_output.loc['mole (mmol)'] = df_output.loc['molar ratio'] * wc.moles[0]
+        # 以下使用する`+2`はそれぞれindex,columnsが占める+1と，pythonの0-indexをexcelの1-indexに変換する+1の合計．
+        df_output_show.loc[ind_mole] = df_output.loc[ind_molar_ratio] * wc.moles[0]
+        df_output.loc[ind_mole, wc.products] = '={0}{1}/{0}{2}'.format(
+            get_column_letter(df_output_show.columns.get_loc(wc.products[0])+2),
+            df_output.index.get_loc(ind_weight_without_excess)+2,
+            df_output.index.get_loc(ind_molar_weight)+2,
+        )
+        df_output.loc[ind_mole, wc.materials] = [
+            '={0}{2}/${1}${2}*${1}${3}'.format(
+                get_column_letter(df_output.columns.get_loc(material)+2),
+                get_column_letter(df_output.columns.get_loc(wc.products[0])+2),
+                df_output.index.get_loc(ind_molar_ratio)+2,
+                df_output.index.get_loc(ind_mole)+2,
+            ) for material in wc.materials
+        ]
 
         # 過剰量
         for material, ex in wc.excess.items():
-            df_output.loc['excess ratio (mol%)', material] = ex * 100
+            df_output.loc[ind_excess_ratio, material] = ex * 100
+            df_output_show.loc[ind_excess_ratio, material] = ex * 100
 
         # 過剰量込のモル数
-        df_output.loc['mole w/ excess'] = df_output.loc['mole (mmol)'] * (1 + df_output.loc['excess ratio (mol%)'] / 100)
+        df_output_show.loc[ind_mole_with_excess] = df_output_show.loc[ind_mole] * (1 + df_output_show.loc[ind_excess_ratio] / 100)
+        df_output.loc[ind_mole_with_excess, wc.materials] = [
+            '={0}{1}*(1+{0}{2}/100)'.format(
+                get_column_letter(df_output.columns.get_loc(material)+2),
+                df_output.index.get_loc(ind_mole)+2,
+                df_output.index.get_loc(ind_excess_ratio)+2
+            ) for material in wc.materials
+        ]
+        # ↓これ必要？
         for material in wc.materials:
-            if np.isnan(df_output.loc['mole w/ excess', material]):
-                df_output.loc['mole w/ excess', material] = df_output.loc['mole (mmol)', material]
+            if np.isnan(df_output_show.loc[ind_mole_with_excess, material]):
+                df_output_show.loc[ind_mole_with_excess, material] = df_output_show.loc[ind_mole, material]
 
         # 過剰量なしの重量
-        df_output.loc['no excess weight (mg)', wc.df_material_weight.columns] = wc.df_material_weight.loc[wc.products[0]]
-        df_output.loc['no excess weight (mg)', wc.products[0]] = df_output.loc['no excess weight (mg)', wc.df_material_weight.columns].sum()
+        df_output_show.loc[ind_weight_without_excess, wc.df_material_weight.columns] = wc.df_material_weight.loc[wc.products[0]]
+        df_output.loc[ind_weight_without_excess, wc.materials] = [
+            '={0}{1}*{0}{2}'.format(
+                get_column_letter(df_output.columns.get_loc(material)+2),
+                df_output.index.get_loc(ind_molar_weight)+2,
+                df_output.index.get_loc(ind_mole)+2,
+            ) for material in wc.materials
+        ]
+
+        df_output_show.loc[ind_weight_without_excess, wc.products[0]] = wc.mg
+        df_output.loc[ind_weight_without_excess, wc.products[0]] = wc.mg
 
         # 過剰量ありの重量
-        df_output.loc['weight (mg)', wc.df_material_weight_excess.columns] = wc.df_material_weight_excess.loc[wc.products[0]]
-        df_output.loc['weight (mg)', wc.products[0]] = df_output.loc['weight (mg)', wc.df_material_weight_excess.columns].sum()
+        df_output_show.loc[ind_weight, wc.df_material_weight_excess.columns] = wc.df_material_weight_excess.loc[wc.products[0]]
+        df_output.loc[ind_weight, wc.materials] = [
+            '={0}{1}*{0}{2}'.format(
+                get_column_letter(df_output.columns.get_loc(material)+2),
+                df_output.index.get_loc(ind_molar_weight)+2,
+                df_output.index.get_loc(ind_mole_with_excess)+2,
+            ) for material in wc.materials
+        ]
+
+        df_output_show.loc[ind_weight, wc.products[0]] = df_output_show.loc[ind_weight, wc.df_material_weight_excess.columns].sum()
+        df_output.loc[ind_weight, wc.products[0]] = '=SUM({0}{2}:{1}{2})'.format(
+            get_column_letter(df_output.columns.get_loc(wc.materials[0])+2),
+            get_column_letter(df_output.columns.get_loc(wc.materials[-1])+2),
+            df_output.index.get_loc(ind_weight)+2,
+        )
 
         # 表示用のdf_outputを作成
-        df_output_show = df_output.applymap(lambda x:'{:.2f}'.format(x))
+        df_output_show = df_output_show.applymap(lambda x:'{:.2f}'.format(x))
         df_output_show.replace('nan', '', inplace=True)
 
         return df_output, df_output_show
-        # print(wc.materials)
-        # df_output = pd.DataFrame()
+
+
 
 
 class Menu:
     def __init__(self, layout = ((sg.Text('You have to add something to show.')),)):
         self.layout = layout
         self.menu_def = [
-            ['Menu', ['About {}'.format(APP_NAME), '---', 'Setting']],
+            ['Menu', ['About {}'.format(APP_NAME), '---', 'Setting', 'Clear cache', '---', 'Exit']],
         ]
 
     def make_window(self, **options):
@@ -481,6 +563,11 @@ class Menu:
         if self.event == 'Setting':
             if _change_setting():   # 設定に反映させるために閉じる場合
                 self.window.close()
+        elif self.event == 'Clear cache':
+            _clear_cache()
+        elif self.event == 'Exit':
+            if sg.PopupOKCancel('Are you sure you want to exit?', **option_text_default) == 'OK':
+                exit()
         elif self.event == 'About {}'.format(APP_NAME):
             with open('about.txt', mode = 'r', encoding = 'utf_8') as f:
                 lcns = f.read()
@@ -531,9 +618,30 @@ def _change_setting():
     setting_menu.window.close()
     return do_close
 
-    
+
+def _clear_cache():
+    cache_files = glob(os.path.join(path_root, 'cache*.json'))
+    if cache_files:
+        if sg.PopupOKCancel('Do you want to clear cache?', modal = False, keep_on_top = True, **option_text_default) == 'OK':
+            for cache_file in cache_files:
+                os.remove(cache_file)
+            else:
+                sg.PopupOK('Cache cleared.', modal = False, keep_on_top = True, **option_text_default)
+    else:
+        sg.PopupOK('No cache.', modal = False, keep_on_top = True, **option_text_default)
+
             
 if __name__ == '__main__':
     # from pdb import set_trace
+    
     app = gui()
     app.run()
+
+    # debug for output
+    # materials = ['Li2O', 'SiO2', 'MoO3']
+    # wc = WeighingCalculator(materials)
+    # wc.calc(ratio=[1,1,1], excess={
+    #     material: 0.
+    #     for material in materials
+    # })
+    # app._make_output(wc)
