@@ -11,6 +11,7 @@ import numpy as np
 import PySimpleGUI as sg
 import os
 import json
+from glob import glob
 from openpyxl.utils import get_column_letter
 
 '''
@@ -27,8 +28,9 @@ option_text_default = {
 APP_NAME = 'Weighing Calculator'
 
 # 設定
-path_settings = os.path.join(os.path.dirname(__file__), 'settings.json')
-path_atomic_weights = os.path.join(os.path.dirname(__file__), 'atomic_weights.csv')
+path_root = os.path.abspath(os.path.dirname(__file__))
+path_settings = os.path.join(path_root, 'settings.json')
+path_atomic_weights = os.path.join(path_root, 'atomic_weights.csv')
 
 class WeighingCalculator:
     def __init__(self, materials):
@@ -487,7 +489,7 @@ class Menu:
     def __init__(self, layout = ((sg.Text('You have to add something to show.')),)):
         self.layout = layout
         self.menu_def = [
-            ['Menu', ['About {}'.format(APP_NAME), '---', 'Setting']],
+            ['Menu', ['About {}'.format(APP_NAME), '---', 'Setting', 'Clear cache', '---', 'Exit']],
         ]
 
     def make_window(self, **options):
@@ -507,6 +509,8 @@ class Menu:
         if self.event == 'Setting':
             if _change_setting():   # 設定に反映させるために閉じる場合
                 self.window.close()
+        elif self.event == 'Clear cache':
+            _clear_cache()
         elif self.event == 'About {}'.format(APP_NAME):
             with open('about.txt', mode = 'r', encoding = 'utf_8') as f:
                 lcns = f.read()
@@ -557,11 +561,24 @@ def _change_setting():
     setting_menu.window.close()
     return do_close
 
-    
+
+def _clear_cache():
+    cache_files = glob(os.path.join(path_root, 'cache*.json'))
+    if cache_files:
+        sg.PopupOKCancel('Do you want to clear cache?', modal = False, keep_on_top = True, **option_text_default)
+        for cache_file in cache_files:
+            os.remove(cache_file)
+        else:
+            sg.PopupOK('Cache cleared.', modal = False, keep_on_top = True, **option_text_default)
+    else:
+        sg.PopupOK('No cache.', modal = False, keep_on_top = True, **option_text_default)
+
             
 if __name__ == '__main__':
     # from pdb import set_trace
     # print(WeighingCalculator(['Li2O', 'SiO2', 'MoO3'])._get_formula_weight('Li2O'))
+
+    # _clear_cache()
     
     app = gui()
     app.run()
