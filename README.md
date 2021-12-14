@@ -60,16 +60,17 @@ Copyright © 2021,  yu9824
 
 ## Histories
 ### v0.5.0
-Rename username.
-Update python from python3.7 to python3.9.6
-Delete xlwt from requirements (only openpyxl is enough.)
-py2app=0.24 does not work correctly, thus I use py2app=0.23
+- Rename username.
+- Update python from python3.7 to python3.9.6
+- Delete xlwt from requirements (only openpyxl is enough.)
+- py2app=0.24 does not work correctly, thus I use py2app=0.23
 
 Note: latest pymatgen has some error. (Import error occurred.) So we use pymatgen=2020.12.31
 
 ### v0.6.0
-3.10.0はサポートしていると書かれているのものサポートされていないと考える方が妥当な結果．（ビルドに失敗する．）
-Downgrade python to 3.8.10.
-Montereyだとpython3.8でpysimpleguiのsaveasが動かない．
-日本語と英語に対応．
-前回入力した原料をキャッシュとして保持できる．
+- Multilingual support (Japanese, English).
+- Excel functions are embedded in the exported Excel file. This makes it possible to complete the replacement of the completed amount and the replacement of excessive amounts within Excel.
+- A cache function has been implemented for some inputs, so that the previous input is saved.
+- Corrected layout and color problems caused by the MacOS X update.
+- Changed the specification to not use pymatgen.
+- Reduced the weight of the application.
