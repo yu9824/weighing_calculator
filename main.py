@@ -20,7 +20,7 @@ Mac OSX10.15においてmenubarがつかえないbugが起きるが，これはs
 
 # フォント
 font_default = 'Hiragino Sans CNS'
-font_size_default = 20
+font_size_default = 19
 option_text_default = {
     'font': (font_default, font_size_default),
 }
@@ -511,6 +511,9 @@ class Menu:
                 self.window.close()
         elif self.event == 'Clear cache':
             _clear_cache()
+        elif self.event == 'Exit':
+            if sg.PopupOKCancel('Are you sure you want to exit?', **option_text_default) == 'OK':
+                exit()
         elif self.event == 'About {}'.format(APP_NAME):
             with open('about.txt', mode = 'r', encoding = 'utf_8') as f:
                 lcns = f.read()
@@ -565,11 +568,11 @@ def _change_setting():
 def _clear_cache():
     cache_files = glob(os.path.join(path_root, 'cache*.json'))
     if cache_files:
-        sg.PopupOKCancel('Do you want to clear cache?', modal = False, keep_on_top = True, **option_text_default)
-        for cache_file in cache_files:
-            os.remove(cache_file)
-        else:
-            sg.PopupOK('Cache cleared.', modal = False, keep_on_top = True, **option_text_default)
+        if sg.PopupOKCancel('Do you want to clear cache?', modal = False, keep_on_top = True, **option_text_default) == 'OK':
+            for cache_file in cache_files:
+                os.remove(cache_file)
+            else:
+                sg.PopupOK('Cache cleared.', modal = False, keep_on_top = True, **option_text_default)
     else:
         sg.PopupOK('No cache.', modal = False, keep_on_top = True, **option_text_default)
 
