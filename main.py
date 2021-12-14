@@ -21,7 +21,7 @@ Mac OSX10.15においてmenubarがつかえないbugが起きるが，これはs
 '''
 
 # フォント
-font_default = 'Hiragino Sans CNS'
+font_default = 'Hiragino Maru Gothic ProN'
 font_size_default = 19
 option_text_default = {
     'font': (font_default, font_size_default),
@@ -416,7 +416,7 @@ class gui:
         # layoutの作成
         table_menu.layout = [
             [sg.Table(df_output_show.to_numpy().tolist(), headings = df_output_show.columns.to_numpy().tolist(), col_widths = [16] + [10] * (df_output_show.shape[1]-2) + [16], auto_size_columns = False, hide_vertical_scroll=False)],
-            [sg.Cancel(self.lang_dict[self.lang]['cancel']), sg.InputText(key='SaveAs', do_not_clear=False, enable_events=True, visible=False), sg.FileSaveAs(self.lang_dict[self.lang]['save_as'], default_extension = '.xlsx', file_types = (('Excel file', '*.xlsx'),))],   # do_not_clearをFalseにしないとCancelしても上書きされてしまう．あと，sg.FilseSaveAsのenable_event = Trueにしてもenentが発生しないのでsg.InputTextで受け取るときにeventを発生させている．
+            [sg.Cancel(self.lang_dict[self.lang]['cancel']), sg.InputText(key='SaveAs', do_not_clear=False, enable_events=True, visible=False), sg.FileSaveAs(self.lang_dict[self.lang]['save_as'], file_types = (('Excel file', '*.xlsx'),))],   # do_not_clearをFalseにしないとCancelしても上書きされてしまう．あと，sg.FilseSaveAsのenable_event = Trueにしてもenentが発生しないのでsg.InputTextで受け取るときにeventを発生させている．
         ]
 
         # windowの作成
@@ -429,7 +429,11 @@ class gui:
             elif table_menu.event == 'SaveAs':
                 if table_menu.values['SaveAs'] == '':
                     continue
-                df_output.reset_index().to_excel(table_menu.values['SaveAs'], index = False)
+                if os.path.splitext(os.path.basename(table_menu.values['SaveAs']))[-1] != '.xlsx':
+                    fpath_output = os.path.splitext(table_menu.values['SaveAs'])[0] + '.xlsx'
+                else:
+                    fpath_output = table_menu.values['SaveAs']
+                df_output.reset_index().to_excel(fpath_output, index = False)
                 sg.PopupOK('Saved successfully.', modal = True, **option_text_default)
             break
             
